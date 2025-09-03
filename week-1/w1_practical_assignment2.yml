@@ -1,4 +1,4 @@
-Description: a vpc with two availability zones and public and prive subnets
+Description: An vpc with two availability zones and public and prive subnets
 
 Parameters:
   VPCCIDR:
@@ -44,7 +44,7 @@ Resources:
       EnableDnsSupport: true
       Tags:
         - Key: Name
-          Value: test
+          Value: MyVpc 
 
   # Internet gateway and attachment
   InternetGatway:
@@ -52,7 +52,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: test
+          Value: InternetGateway
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -70,7 +70,7 @@ Resources:
       MapPublicIpOnLaunch: yes 
       Tags:
         - Key: Name
-          Value: test
+          Value: publicSubnet1
 
   PublicSubnet2:
       Type: AWS::EC2::Subnet
@@ -81,7 +81,7 @@ Resources:
         MapPublicIpOnLaunch: yes 
         Tags:
           - Key: Name
-            Value: test
+            Value: publicSubnet2
 
   # private subnets
   PrivateSubnet1:
@@ -92,7 +92,7 @@ Resources:
       CidrBlock: !Ref PRIVATESUBNET1CIDR
       Tags:
         - Key: Name
-          Value: test
+          Value: privateSubnet1
 
   PrivateSubnet2:
       Type: AWS::EC2::Subnet
@@ -102,7 +102,7 @@ Resources:
         CidrBlock: !Ref PRIVATESUBNET2CIDR
         Tags:
           - Key: Name
-            Value: test 
+            Value: privateSubnet2
 
   # Routing table
   routeTable:
@@ -111,7 +111,7 @@ Resources:
       VpcId: !Ref myVPC
       Tags:
         - Key: Name
-          Value: test
+          Value: routingTable
 
   # Routes
   GatewayToInternetRoute:
@@ -151,5 +151,5 @@ Resources:
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: test
+          Value: publicSecurityGroup
   
