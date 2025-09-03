@@ -1,0 +1,41 @@
+Description: EC2 instances
+
+Resources:
+  
+  # Instance 1
+  EC2Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: vockey
+      ImageId: ami-0e95a5e2743ec9ec9
+      InstanceType: t3.micro
+      Monitoring: false
+      SubnetId: !ImportValue BaseStack:MyFirstSubnet
+      AvailabilityZone: !ImportValue BaseStack:AvailabilityZone1
+      SecurityGroupIds:
+        - sg-id
+      UserData: !Base64 |
+        #!/bin/bash -ex
+        # put your script here
+      Tags:
+        - Key: Name
+          Value: Instance1
+
+  # Instance 2
+  EC2Instance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: vockey
+      ImageId: ami-0e95a5e2743ec9ec9
+      InstanceType: t3.micro
+      Monitoring: false
+      SubnetId: !ImportValue BaseStack:MySecondSubnet
+      AvailabilityZone: !ImportValue BaseStack:AvailabilityZone2
+      SecurityGroupIds:
+        - sg-id
+      UserData: !Base64 |
+        #!/bin/bash -ex
+        # put your script here
+      Tags:
+        - Key: Name
+          Value: Instance1
