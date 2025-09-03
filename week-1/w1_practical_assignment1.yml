@@ -1,0 +1,102 @@
+# A description of what your template does.
+Description: My first VPC (10.0.0.0/16) with a public subnet (10.0.10.0/24).
+# Parameters you can set in CloudFormation when you roll out your stack.
+Parameters:
+  VPCCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC.
+    Type: String
+    Default: 10.0.0.0/16
+  PUBLICSUBNETCIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet
+    Type: String
+    Default: 10.0.10.0/24
+# The cloud resources your template is going to create.
+Resources:
+  MyFirstVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      Tags: # Good practice is to add tags!
+        - Key: Name
+          Value: MyFirstVPC
+  MyFirstSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PUBLICSUBNETCIDR
+      MapPublicIpOnLaunch: yes # Important! See documentation.
+      VpcId: !Ref MyFirstVPC
+      Tags:
+        - Key: Name
+          Value: MyFirstSubnet
+  MyFirstInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: 
+        - Key: keyname
+          Value: MyFirstInternetGateway
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyFirstVPC
+      InternetGatewayId: !Ref MyFirstInternetGateway
+  MyFirstRoutingTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyFirstVPC
+      Tags:
+        - Key: keyname
+          Value: MyFirstRoutingTable
+  GatewayToInternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: MyFirstInternetGateway # the docs did have this inside of there example but not sure if this will work.
+    Properties:
+      RouteTableId: !Ref MyFirstRoutingTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyFirstInternetGateway
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref MyFirstSubnet
+      RouteTableId: !Ref MyFirstRoutingTable
+  MyFirstSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: MyFirstSecurityGroup
+      GroupDescription: My first security group 
+      VpcId: !Ref MyFirstVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: MyFirstSecurityGroup
+  MyFirstEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0e95a5e2743ec9ec9
+      KeyName: vockey
+      InstanceType: t3.micro
+      Monitoring: false
+      SubnetId: !Ref MyFirstSubnet
+      SecurityGroupIds:
+        - !Ref MyFirstSecurityGroup
+      UserData: !Base64 |
+        #!/bin/bash -ex
+        yum update -y
+        amazon-linux-extras install nginx1
+        systemctl enable nginx
+        systemctl start nginx
+      Tags:
+        - Key: Name
+          Value: MyFirstEC2Instance
+Outputs:
+  VPCRef:
+    Description: Reference to the VPC
+    Value: !Ref MyFirstVPC
+    Export:
+      Name: !Join [":", [!Ref "AWS::StackName", VPC]] # Fancy way of making the exported variable called "MyBase:VPC"
