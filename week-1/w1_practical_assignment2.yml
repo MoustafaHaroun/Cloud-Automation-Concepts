@@ -1,0 +1,155 @@
+Description: a vpc with two availability zones and public and prive subnets
+
+Parameters:
+  VPCCIDR:
+    Description: Vpc ip cidrblock.
+    Type: String
+    Default: 10.0.0.0/16
+  
+  PUBLICSUBNET1CIDR:
+    Description: Public subnet ip cidrblock for availability zone 1.
+    Type: String
+    Default: 10.0.10.0/24
+  
+  PUBLICSUBNET2CIDR:
+    Description: Public subnet ip cidrblock for availability zone 2.
+    Type: String
+    Default: 10.0.11.0/24
+
+  PRIVATESUBNET1CIDR:
+    Description: Public subnet ip cidrblock for availability zone 1.
+    Type: String
+    Default: 10.0.12.0/24
+  
+  PRIVATESUBNET2CIDR:
+    Description: Public subnet ip cidrblock for availability zone 2.
+    Type: String
+    Default: 10.0.13.0/24
+
+  AZ1:
+    Description: First Availability Zone (e.g. eu-central-1a).
+    Type: AWS::EC2::AvailabilityZone::Name
+  
+  AZ2:
+    Description: Second Availability Zone (e.g. eu-central-1b).
+    Type: AWS::EC2::AvailabilityZone::Name
+
+Resources:
+  
+  # Vpc
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: test
+
+  # Internet gateway and attachment
+  InternetGatway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: test
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myVPC
+      InternetGatewayId: !Ref InternetGatway
+
+
+  # public subnets
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AZ1
+      VpcId: !Ref myVPC
+      CidrBlock: !Ref PUBLICSUBNET1CIDR
+      MapPublicIpOnLaunch: yes 
+      Tags:
+        - Key: Name
+          Value: test
+
+  PublicSubnet2:
+      Type: AWS::EC2::Subnet
+      Properties:
+        AvailabilityZone: !Ref AZ2
+        VpcId: !Ref myVPC
+        CidrBlock: !Ref PUBLICSUBNET2CIDR
+        MapPublicIpOnLaunch: yes 
+        Tags:
+          - Key: Name
+            Value: test
+
+  # private subnets
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AZ1
+      VpcId: !Ref myVPC
+      CidrBlock: !Ref PRIVATESUBNET1CIDR
+      Tags:
+        - Key: Name
+          Value: test
+
+  PrivateSubnet2:
+      Type: AWS::EC2::Subnet
+      Properties:
+        AvailabilityZone: !Ref AZ2
+        VpcId: !Ref myVPC
+        CidrBlock: !Ref PRIVATESUBNET2CIDR
+        Tags:
+          - Key: Name
+            Value: test 
+
+  # Routing table
+  routeTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: test
+
+  # Routes
+  GatewayToInternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatway
+    Properties:
+      RouteTableId: !Ref routeTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGatway
+  
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref routeTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref routeTable
+      SubnetId: !Ref PublicSubnet2
+  
+  # Security group
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: My second security group 
+      GroupDescription: My second security group
+      VpcId: !Ref myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: test
+  
