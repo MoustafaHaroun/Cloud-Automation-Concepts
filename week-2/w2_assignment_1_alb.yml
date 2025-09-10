@@ -1,0 +1,34 @@
+Description: My first aws cloudformation loadbalancer
+
+Resources:
+  MyFirstLoadbalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: my-alb
+      Type: application
+      Scheme: internal
+      SecurityGroups:
+        - !ImportValue SecurityGroup1
+      Subnets:
+        - !ImportValue BaseStack:MyFirstSubnet
+        - !ImportValue BaseStack:MySecondSubnet
+
+  MyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: my-targets
+      Protocol: HTTP
+      Port: 80
+      VpcId: !ImportValue BaseStack:VPC   
+      TargetType: instance
+      HealthCheckPath: /
+
+  MyListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MyFirstLoadbalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MyTargetGroup

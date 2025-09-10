@@ -1,6 +1,28 @@
 Description: EC2 instances
 
 Resources:
+
+  MyFirstSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: MyFirstSecurityGroup
+      GroupDescription: My first security group 
+      VpcId: !ImportValue BaseStack:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22  
+          ToPort: 22 
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: MyFirstSecurityGroup
   
   # Instance 1
   EC2Instance1:
@@ -13,10 +35,24 @@ Resources:
       SubnetId: !ImportValue BaseStack:MyFirstSubnet
       AvailabilityZone: !ImportValue BaseStack:AvailabilityZone1
       SecurityGroupIds:
-        - sg-id
+        - !Ref MyFirstSecurityGroup
       UserData: !Base64 |
         #!/bin/bash -ex
-        # put your script here
+        yum install git -y
+
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        source ~/.bashrc
+        nvm install --lts
+        nvm install 12
+        nvm use 12
+        node -e "console.log('Running Node.js ' + process.version)"
+
+        git clone https://github.com/TimothySealy/cac-simple-webapp.git
+
+        cd cac-simple-webapp/
+        export $PORT=80
+        npm i
+        npm run start
       Tags:
         - Key: Name
           Value: Instance1
@@ -32,10 +68,41 @@ Resources:
       SubnetId: !ImportValue BaseStack:MySecondSubnet
       AvailabilityZone: !ImportValue BaseStack:AvailabilityZone2
       SecurityGroupIds:
-        - sg-id
+        - !Ref MyFirstSecurityGroup 
       UserData: !Base64 |
         #!/bin/bash -ex
-        # put your script here
+        yum install git -y
+
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        source ~/.bashrc
+        nvm install --lts
+        nvm install 12
+        nvm use 12
+        node -e "console.log('Running Node.js ' + process.version)"
+
+        git clone https://github.com/TimothySealy/cac-simple-webapp.git
+
+        cd cac-simple-webapp/
+        export $PORT=80
+        npm i
+        npm run start
       Tags:
         - Key: Name
-          Value: Instance1
+          Value: Instance2
+Outputs:
+  SecurityGroupRef:
+    Description: Reference to the security group 
+    Value: !Ref MyFirstSecurityGroup 
+    Export:
+      Name: SecurityGroup1 
+  Instance1Id:
+    Description: ID of EC2 Instance 1
+    Value: !Ref EC2Instance1
+    Export:
+      Name: Instance1Id
+
+  Instance2Id:
+    Description: ID of EC2 Instance 2
+    Value: !Ref EC2Instance2
+    Export:
+      Name: Instance2Id
