@@ -17,6 +17,10 @@ Resources:
           FromPort: 22  
           ToPort: 22 
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000  
+          ToPort: 3000 
+          CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
@@ -41,7 +45,10 @@ Resources:
         yum install git -y
 
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-        source ~/.bashrc
+
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
         nvm install --lts
         nvm install 12
         nvm use 12
@@ -50,7 +57,7 @@ Resources:
         git clone https://github.com/TimothySealy/cac-simple-webapp.git
 
         cd cac-simple-webapp/
-        export $PORT=80
+        export PORT=3000
         npm i
         npm run start
       Tags:
@@ -74,7 +81,10 @@ Resources:
         yum install git -y
 
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-        source ~/.bashrc
+
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
         nvm install --lts
         nvm install 12
         nvm use 12
@@ -83,7 +93,7 @@ Resources:
         git clone https://github.com/TimothySealy/cac-simple-webapp.git
 
         cd cac-simple-webapp/
-        export $PORT=80
+        export PORT=3000
         npm i
         npm run start
       Tags:

@@ -6,7 +6,7 @@ Resources:
     Properties:
       Name: my-alb
       Type: application
-      Scheme: internal
+      Scheme: internet-facing 
       SecurityGroups:
         - !ImportValue SecurityGroup1
       Subnets:
@@ -21,7 +21,14 @@ Resources:
       Port: 80
       VpcId: !ImportValue BaseStack:VPC   
       TargetType: instance
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 3000
       HealthCheckPath: /
+      Targets:
+        - Id: !ImportValue Instance1Id
+          Port: 3000 
+        - Id: !ImportValue Instance2Id
+          Port: 3000 
 
   MyListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
