@@ -6,7 +6,7 @@ Resources:
     Properties:
       Name: my-alb
       Type: application
-      Scheme: internet-facing 
+      Scheme: internet-facing
       SecurityGroups:
         - !ImportValue SecurityGroup1
       Subnets:
@@ -18,17 +18,17 @@ Resources:
     Properties:
       Name: my-targets
       Protocol: HTTP
-      Port: 80
+      Port: 3000                      
       VpcId: !ImportValue BaseStack:VPC   
       TargetType: instance
       HealthCheckProtocol: HTTP
       HealthCheckPort: 3000
       HealthCheckPath: /
-      Targets:
-        - Id: !ImportValue Instance1Id
-          Port: 3000 
-        - Id: !ImportValue Instance2Id
-          Port: 3000 
+      # Targets:
+      #   - Id: !ImportValue Instance1Id
+      #     Port: 3000 
+      #   - Id: !ImportValue Instance2Id
+      #     Port: 3000 
 
   MyListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -39,3 +39,17 @@ Resources:
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref MyTargetGroup
+
+Outputs:
+  TargetGroupArn:
+    Value: !Ref MyTargetGroup
+    Export:
+      Name: MyTargetGroupArn
+  LoadBalancerFullName:
+    Value: !GetAtt MyFirstLoadbalancer.LoadBalancerFullName
+    Export:
+      Name: MyLoadBalancerFullName
+  TargetGroupFullName:
+    Value: !GetAtt MyTargetGroup.TargetGroupFullName
+    Export:
+      Name: MyTargetGroupFullName

@@ -1,0 +1,58 @@
+Description: AutoScaling group with request-count scaling
+
+Resources:
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: my-launch-template
+      LaunchTemplateData:
+        InstanceType: t3.micro
+        ImageId: ami-0e95a5e2743ec9ec9
+        SecurityGroupIds:
+          - !ImportValue SecurityGroup1
+        UserData: !Base64 |
+          #!/bin/bash -ex
+          yum install -y git
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install 12
+          nvm use 12
+          git clone https://github.com/TimothySealy/cac-simple-webapp.git
+          cd cac-simple-webapp
+          export PORT=3000
+          npm i
+          npm run start
+
+  MyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !ImportValue BaseStack:MyFirstSubnet
+        - !ImportValue BaseStack:MySecondSubnet
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+      MinSize: 1
+      MaxSize: 4
+      DesiredCapacity: 1
+      TargetGroupARNs:
+        - !ImportValue MyTargetGroupArn
+      Tags:
+        - Key: Name
+          Value: ASG-Instance
+          PropagateAtLaunch: true
+
+  MyRequestScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref MyAutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ALBRequestCountPerTarget
+          ResourceLabel: !Join
+            - "/"
+            - - !ImportValue MyLoadBalancerFullName
+              - !ImportValue MyTargetGroupFullName
+        TargetValue: 1
